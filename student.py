@@ -1,7 +1,9 @@
 from datetime import date, timedelta
+import requests
+
 
 class Student:
-    """A student class for base method testing"""
+    """ A Student class as a basis for method testing """
 
     def __init__(self, first_name, last_name):
         self._first_name = first_name
@@ -10,18 +12,40 @@ class Student:
         self.end_date = date.today() + timedelta(days=365)
         self.naughty_list = False
 
-
     @property
     def full_name(self):
         return f"{self._first_name} {self._last_name}"
-
-
-    def alert_santa(self):
-        self.naughty_list = True
 
     @property
     def email_address(self):
         return f"{self._first_name.lower()}.{self._last_name.lower()}@email.com"
 
+    def alert_santa(self):
+        self.naughty_list = True
+
     def apply_extension(self, days):
-        self.end_date = self.end_date + timedelta(days=days)
+        self.end_date += timedelta(days=days)
+
+    def course_schedule(self):
+        response = requests.get(
+            f"https://company.com/course-schedule/{self._last_name}/{self._first_name}")
+
+        if response.ok:
+            return response.text
+        else:
+            return "Something went wrong"
+
+    def test_course_schedule_success(self):
+        with patch("student.requests.get") as mocked_get:
+            mocked_get.return_value.ok = True
+            mocked_get.return_value.text = "Success"
+
+            schedule = self.student.course_schedule()
+            self.assertEqual(schedule, "Success")
+            
+    def test_course_schedule_failed(self):
+        with patch("student.requests.get") as mocked_get:
+            mocked_get.return_value.ok = False
+
+            schedule = self.student.course_schedule()
+            self.assertEqual(schedule, "Something went wrong") 
